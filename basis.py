@@ -94,12 +94,12 @@ class Tile(Sprite):
             self.image.fill(Tile.revealed_color)
 
     def mark_wrong(self, left_click = False):
-        if self.marked_wrong and not left_click:
+        if self.marked_wrong and not left_click: # Unmark as wrong
             pygame.draw.line(self.image, Tile.unrevealed_color, (0, 0), (self.rect.width, self.rect.height))
             pygame.draw.line(self.image, Tile.unrevealed_color, (self.rect.width, 0), (0, self.rect.height))
             self.draw_border((3, BLACK))
             self.marked_wrong = False
-        else:
+        else: # Mark as wrong
             pygame.draw.line(self.image, BLACK, (0, 0), (self.rect.width, self.rect.height))
             pygame.draw.line(self.image, BLACK, (self.rect.width, 0), (0, self.rect.height))
             self.marked_wrong = True
@@ -126,6 +126,8 @@ class Level(Sprite):
         self.cols_numbers = self.get_cols_numbers()
 
         self.tiles = self.get_tiles()
+
+        self.info = None # This will later become a sprite to display the level number and error count
 
         w = self.cols_amount * self.tile_size
         h = self.rows_amount * self.tile_size
@@ -175,9 +177,9 @@ class Level(Sprite):
             row_numbers = []
             consecutive_correct_tiles = 0
 
-            for j, tile in enumerate(row):
+            for tile in row:
 
-                if self.matrix[i][j].correct:
+                if tile.correct:
                     consecutive_correct_tiles += 1
 
                 elif consecutive_correct_tiles:
@@ -203,9 +205,9 @@ class Level(Sprite):
             col_numbers = []
             consecutive_correct_tiles = 0
 
-            for j, tile in enumerate(row):
+            for tile in row:
 
-                if transpose_matrix[i][j].correct:
+                if tile.correct:
                     consecutive_correct_tiles += 1
 
                 elif consecutive_correct_tiles:
@@ -292,13 +294,20 @@ class Level(Sprite):
         self.reset_matrix()
 
         subrect = pygame.Rect((0, 0), (Screen.width - 130, Screen.height - 50))
-        subrect.center = Screen.half_size
-        picross = Sprite(Screen.window.subsurface(subrect))
 
-        subrect.top = picross.rect.height - self.rect.height
-        subrect.left = picross.rect.width - self.rect.width
-        subrect.size = self.image.get_size()
-        self.image = picross.image.subsurface(subrect)
+        def picross():
+            subrect.center = Screen.half_size
+            return Sprite(Screen.window.subsurface(subrect))
+
+        picross = picross()
+
+        def image():
+            subrect.top = picross.rect.height - self.rect.height
+            subrect.left = picross.rect.width - self.rect.width
+            subrect.size = self.image.get_size()
+            return picross.image.subsurface(subrect)
+
+        self.image = image()
 
         self.build_grid()
         self.rect.top = picross.rect.height - self.rect.height
@@ -307,28 +316,41 @@ class Level(Sprite):
         subrect.top = 0
         subrect.left = self.rect.left
         subrect.height = picross.rect.height - self.rect.height
-        subrect.width = self.rect.width
+        subrect.width = self.rect.width #SEPARAR EM FUNC
         cols_numbers = Sprite(picross.image.subsurface(subrect))
         self.build_cols_numbers(cols_numbers)
 
         subrect.left = 0
         subrect.top = self.rect.top
-        subrect.width = picross.rect.width - self.rect.width
+        subrect.width = picross.rect.width - self.rect.width #SEPARAR EM FUNC
         subrect.height = self.rect.height
         rows_numbers = Sprite(picross.image.subsurface(subrect))
         self.build_rows_numbers(rows_numbers)
 
         subrect.topleft = (0, 0)
         subrect.width = picross.rect.width - self.rect.width
-        subrect.height = picross.rect.height - self.rect.height
-        level_info = Sprite(picross.image.subsurface(subrect))
-        level_info_font = Font(Font.pixelated, 60)
-        level_info_font.center_write(f'Fase  {self.number}', WHITE, level_info, level_info.half_size)
+        subrect.height = picross.rect.height - self.rect.height    #SEPARAR EM FUNC
+        self.info = Sprite(picross.image.subsurface(subrect))
+        self.info_font = Font(Font.pixelated, 60)
+        self.info_font.center_write(f'Fase  {self.number}', WHITE, self.info, self.info.half_size)
 
         errors_font = Font(Font.pixelated, 30)
-        errors_font.center_write('Erros: 0', WHITE, level_info, (level_info.half_width, level_info.half_height + level_info_font.size))
+        errors_font.center_write('Erros: 0', WHITE, self.info, (self.info.half_width, self.info.half_height + self.info_font.size))
 
-        return Sprite(self.image), level_info, self.number
+        return Sprite(self.image), self.info
+
+    def update_info(self, error_count):
+        self.info.image.fill(GRAY)
+
+        self.info_font = Font(Font.pixelated, 60)
+        self.info_font.center_write(f'Fase  {self.number}', WHITE, self.info,
+                                     self.info.half_size)
+
+        error_font = Font(Font.pixelated, 30)
+        error_font.center_write(f'Erros: {error_count}', WHITE, self.info, (
+            self.info.half_width, self.info.half_height + self.info_font.size))
+
+
 
 Y = YELLOW
 L = LIGHT_BLUE

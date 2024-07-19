@@ -12,7 +12,8 @@ def picross(level):
         Screen.draw_return_msg()
         return level.build_level()
 
-    level_grid, level_info, level_number = build()
+    level_grid, level_info = build()
+    error_count = 0
 
     running = True
     while running:
@@ -22,11 +23,31 @@ def picross(level):
             if event.type == pygame.QUIT:
                 running = False
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                pass
-
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 level_selection()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = tuple(a - b for a, b in zip(pygame.mouse.get_pos(), level_grid.image.get_abs_offset()))
+
+                for tile in level.tiles:
+                    if tile.rect.collidepoint(mouse_pos):
+                        if event.button == 1: # Left click
+                            if tile.correct:
+                                tile.reveal()
+                            else:
+                                tile.mark_wrong(True)
+                                error_count += 1
+                                level.update_info(error_count)
+
+                        elif event.button == 3: # Right click
+                            tile.mark_wrong()
+
+                        level.update_grid()
+
+                        if level.test_for_completion():
+                            error_count = 0
+
+                        break
 
         pygame.display.flip()
 
@@ -42,7 +63,7 @@ def level_selection():
         Screen.window.fill(GRAY)
         Screen.draw_return_msg()
         pygame.display.set_caption(CAPTION_TITLE + 'Seleção de Fases')
-        title_font = Font('assets/pixelated.ttf', 80)
+        title_font = Font(Font.pixelated, 80)
 
         def main():
             subrect = pygame.Rect((0, 0), (Screen.width - 200, Screen.height - 50))
