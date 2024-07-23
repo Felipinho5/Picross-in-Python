@@ -5,24 +5,40 @@ import math
 from constants import *
 from basis import Sprite, Font, Screen, Level, Music, SFX
 
-def get_progress():
+pgs = None
+
+def load_progress():
+    global pgs
+
     with open(PROGRESS_FILE, 'r') as file:
-        return json.load(file)
+        pgs = json.load(file)
 
-def save_progress(new_info):
+def save_progress():
+    global pgs
+
     with open(PROGRESS_FILE, 'w') as file:
-        json.dump(new_info, file, indent = 4)
+        json.dump(pgs, file, indent = 4)
 
-pgs = get_progress()
+def reset_progress():
+    global pgs
+
+    with open(PROGRESS_RESET_FILE, 'r') as source:
+        reset_pgs = json.load(source)
+
+    with open(PROGRESS_FILE, 'w') as target:
+        json.dump(reset_pgs, target, indent = 4)
+
+    pgs = reset_pgs
 
 def quit():
-    save_progress(pgs)
+    save_progress()
     pygame.quit()
     sys.exit()
 
 
 
 def picross(level):
+    global pgs
 
     Music.play_level_track()
 
@@ -92,6 +108,7 @@ def picross(level):
 
 
 def level_selection():
+    global pgs
 
     Music.play(Music.menu)
 
@@ -108,7 +125,6 @@ def level_selection():
             return Sprite(Screen.window.subsurface(subrect))
 
         main = main()
-        # main.draw_border((5, RED)) # DEBUG
         title_font.center_write('Fases', WHITE, main, (main.half_width, title_font.size))
 
         def button_image():
@@ -127,22 +143,17 @@ def level_selection():
         def button_container():
             subrect = pygame.Rect((0, 0),
                                   (button_rect.width * cols + (cols - 1) * button_spacing,
-                                   button_rect.height * rows + button_spacing))
+                                   button_rect.height * rows + button_spacing + 170))
             subrect.center = (main.half_width, main.half_height + 50)
             return Sprite(main.image.subsurface(subrect))
 
         button_container = button_container()
-        # button_container.draw_border((5, RED)) # DEBUG
 
         def buttons():
             level_count = 1
             buttons = []
 
-
-
             def draw_checkmark(target_spr):
-
-                # target_spr.draw_border((3, RED)) # DEBUG
 
                 line_width = 5
 
@@ -181,7 +192,19 @@ def level_selection():
                 subrect.topleft = (target_spr.width - subrect.width, 0)
                 return Sprite(target_spr.image.subsurface(subrect))
 
+            def build_reset_progress_button():
+                reset_progress_button = Sprite(pygame.Surface((button_container.width, button_image().get_height())))
+                reset_progress_button.image.fill(YELLOW)
+                reset_progress_button.rect.bottomright = button_container.size
+                reset_progress_button.draw_border((3, BLACK))
 
+                reset_progress_font = Font(Font.pixelated, 30)
+                reset_progress_font.center_write('Zerar progresso', BLACK, reset_progress_button, reset_progress_button.half_size)
+
+                buttons.append(dict(level = -1, sprite = reset_progress_button))
+                button_container.image.blit(reset_progress_button.image, reset_progress_button.rect)
+
+            build_reset_progress_button()
 
             for i in range(rows):
                 for j in range(cols):
@@ -246,9 +269,13 @@ def level_selection():
                 for button in buttons:
                     if button['sprite'].rect.collidepoint(mouse_pos):
                         SFX['ding'].play()
-                        level_number = button['level'] - 1
-                        chosen_level = Level.levels[level_number]
-                        picross(chosen_level)
+                        if button['level'] == -1: # Reset progress button
+                            reset_progress()
+                            level_selection()
+                        else:
+                            level_number = button['level'] - 1
+                            chosen_level = Level.levels[level_number]
+                            picross(chosen_level)
                         break
 
         pygame.display.flip()
@@ -382,8 +409,7 @@ def menu():
 
     quit()
 
-
-
 if __name__ == '__main__':
+    load_progress()
     pygame.init()
     menu()
