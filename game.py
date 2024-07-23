@@ -31,6 +31,10 @@ def reset_progress():
 
     pgs = reset_pgs
 
+def update():
+    pygame.display.flip()
+    clock.tick(30)
+
 def quit():
     save_progress()
     pygame.quit()
@@ -102,7 +106,7 @@ def picross(level):
 
                         break
 
-        pygame.display.flip()
+        update()
 
     quit()
 
@@ -113,6 +117,7 @@ def level_selection():
 
     Music.play(Music.menu)
 
+    # Function to build the interface and return what's necessary to have control over what's being clicked
     def build():
 
         Screen.window.fill(GRAY)
@@ -172,7 +177,6 @@ def level_selection():
                 center = (w / 2, h / 2)
                 num_points = 5
 
-                # Calculate the positions of the points
                 points = []
                 for i in range(num_points * 2):
                     angle = i * math.pi / num_points
@@ -184,7 +188,6 @@ def level_selection():
                     y = center[1] + r * math.sin(angle)
                     points.append((x, y))
 
-                # Draw the star
                 pygame.draw.polygon(target_spr.image, GREEN, points)
 
             def topright_corner(target_spr):
@@ -262,7 +265,7 @@ def level_selection():
                 running = False
 
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                menu()
+                main()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = tuple(a - b for a, b in zip(pygame.mouse.get_pos(), button_container.image.get_abs_offset()))
@@ -279,8 +282,7 @@ def level_selection():
                             picross(chosen_level)
                         break
 
-        pygame.display.flip()
-        clock.tick(30)
+        update()
 
     quit()
 
@@ -312,15 +314,17 @@ def tutorial():
                 running = False
 
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                menu()
+                main()
 
-        pygame.display.flip()
-        clock.tick(30)
+        update()
 
     quit()
 
 
-def menu():
+def main():
+
+    load_progress()
+    pygame.init()
 
     Music.play(Music.menu)
 
@@ -408,12 +412,9 @@ def menu():
                             case 'quit': running = False
                         break
 
-        pygame.display.flip()
-        clock.tick(30)
+        update()
 
     quit()
 
 if __name__ == '__main__':
-    load_progress()
-    pygame.init()
-    menu()
+    main()
