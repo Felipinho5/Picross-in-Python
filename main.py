@@ -1,6 +1,7 @@
 import sys
 import pygame
 import json
+import math
 from constants import *
 from basis import Sprite, Font, Screen, Level, Music, SFX
 
@@ -58,8 +59,9 @@ def picross(level):
                             else:
                                 tile.mark_wrong(True)
 
-                                error_count += 1
-                                level.update_info(error_count)
+                                if error_count < 999:
+                                    error_count += 1
+                                    level.update_info(error_count)
 
                         elif event.button == 3: # Right click
                             tile.mark_wrong()
@@ -106,6 +108,7 @@ def level_selection():
             return Sprite(Screen.window.subsurface(subrect))
 
         main = main()
+        # main.draw_border((5, RED)) # DEBUG
         title_font.center_write('Fases', WHITE, main, (main.half_width, title_font.size))
 
         def button_image():
@@ -116,6 +119,7 @@ def level_selection():
         button_rect = button_image().get_rect()
         button_spacing = 20
         button_font = Font(Font.pixelated, 30)
+        record_font = Font(Font.pixelated, 16)
 
         rows = 2
         cols = 5
@@ -128,20 +132,87 @@ def level_selection():
             return Sprite(main.image.subsurface(subrect))
 
         button_container = button_container()
+        # button_container.draw_border((5, RED)) # DEBUG
 
         def buttons():
             level_count = 1
             buttons = []
 
+
+
+            def draw_checkmark(target_spr):
+
+                # target_spr.draw_border((3, RED)) # DEBUG
+
+                line_width = 5
+
+                line_start_1 = (5, target_spr.height / 2)
+                line_end_1 = (target_spr.width / 2 - 3, target_spr.width - 5)
+                pygame.draw.line(target_spr.image, GREEN, line_start_1, line_end_1, line_width)
+
+                line_end_2 = (target_spr.width - 8, 5)
+                pygame.draw.line(target_spr.image, GREEN, line_end_1, line_end_2, line_width)
+
+            def draw_star(target_spr):
+                margin = 5
+                w, h = target_spr.size
+                star_size = min(w, h) - 2 * margin
+                center = (w / 2, h / 2)
+                num_points = 5
+
+                # Calculate the positions of the points
+                points = []
+                for i in range(num_points * 2):
+                    angle = i * math.pi / num_points
+                    if i % 2 == 0:
+                        r = star_size / 2
+                    else:
+                        r = star_size / 4
+                    x = center[0] + r * math.cos(angle)
+                    y = center[1] + r * math.sin(angle)
+                    points.append((x, y))
+
+                # Draw the star
+                pygame.draw.polygon(target_spr.image, GREEN, points)
+
+            def topright_corner(target_spr):
+                subrect = pygame.Rect(0, 0, 0, 0)
+                subrect.size = (30,) * 2
+                subrect.topleft = (target_spr.width - subrect.width, 0)
+                return Sprite(target_spr.image.subsurface(subrect))
+
+
+
             for i in range(rows):
                 for j in range(cols):
                     button = Sprite(button_image())
 
-                    if pgs[level_count - 1]['unlocked']:
+                    this_level = pgs[level_count - 1]
+                    corner = topright_corner(button)
+
+                    if this_level['unlocked']:
                         button.image.fill(YELLOW)
                         buttons.append(dict(level = level_count, sprite = button))
 
-                    button_font.center_write(str(level_count), BLACK, button, button.half_size)
+                        if this_level['completed']:
+                            record_font.topleft_write(
+                                'Recorde:',
+                                BLACK, button, (5, button.height - record_font.size * 2)
+                            )
+
+                            plural = '' if this_level['fewest_errors'] == 1 else 's'
+
+                            record_font.topleft_write(
+                                f'{this_level['fewest_errors']} erro{plural}',
+                                BLACK, button, (5, button.height - record_font.size)
+                            )
+
+                            if this_level['fewest_errors'] == 0:
+                                draw_star(corner)
+                            else:
+                                draw_checkmark(corner)
+
+                    button_font.topleft_write(str(level_count), BLACK, button, (5, 5))
                     button.rect.left = j * (button.rect.width + button_spacing)
                     button.rect.top = i * (button.rect.height + button_spacing)
                     button.draw_border((3, BLACK))

@@ -12,6 +12,7 @@ class Sprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.width = self.rect.width
         self.height = self.rect.height
+        self.size = (self.width, self.height)
         self.half_width = self.width / 2
         self.half_height = self.height / 2
         self.half_size = (self.half_width, self.half_height)

@@ -13,3 +13,4 @@ ORANGE = (250, 170, 65)
 GREEN = (0, 153, 0)
 CAPTION_TITLE = 'PICROSS - '
 PROGRESS_FILE = 'progress.json'
+PROGRESS_RESET_FILE = 'progress_reset.json'

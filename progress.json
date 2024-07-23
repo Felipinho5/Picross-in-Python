@@ -1,52 +1,52 @@
 [
     {
         "unlocked": true,
-        "completed": false,
-        "fewest_errors": null
+        "completed": true,
+        "fewest_errors": 0
     },
     {
-        "unlocked": false,
-        "completed": false,
-        "fewest_errors": null
+        "unlocked": true,
+        "completed": true,
+        "fewest_errors": 0
     },
     {
-        "unlocked": false,
-        "completed": false,
-        "fewest_errors": null
+        "unlocked": true,
+        "completed": true,
+        "fewest_errors": 0
     },
     {
-        "unlocked": false,
-        "completed": false,
-        "fewest_errors": null
+        "unlocked": true,
+        "completed": true,
+        "fewest_errors": 0
     },
     {
-        "unlocked": false,
-        "completed": false,
-        "fewest_errors": null
+        "unlocked": true,
+        "completed": true,
+        "fewest_errors": 0
     },
     {
-        "unlocked": false,
-        "completed": false,
-        "fewest_errors": null
+        "unlocked": true,
+        "completed": true,
+        "fewest_errors": 0
     },
     {
-        "unlocked": false,
-        "completed": false,
-        "fewest_errors": null
+        "unlocked": true,
+        "completed": true,
+        "fewest_errors": 0
     },
     {
-        "unlocked": false,
-        "completed": false,
-        "fewest_errors": null
+        "unlocked": true,
+        "completed": true,
+        "fewest_errors": 0
     },
     {
-        "unlocked": false,
-        "completed": false,
-        "fewest_errors": null
+        "unlocked": true,
+        "completed": true,
+        "fewest_errors": 0
     },
     {
-        "unlocked": false,
-        "completed": false,
-        "fewest_errors": null
+        "unlocked": true,
+        "completed": true,
+        "fewest_errors": 0
     }
 ]
