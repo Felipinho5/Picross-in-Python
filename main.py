@@ -1,18 +1,39 @@
 import sys
 import pygame
+import json
 from constants import *
-from basis import Sprite, Font, Screen, Level
+from basis import Sprite, Font, Screen, Level, Music, SFX
+
+def get_progress():
+    with open(PROGRESS_FILE, 'r') as file:
+        return json.load(file)
+
+def save_progress(new_info):
+    with open(PROGRESS_FILE, 'w') as file:
+        json.dump(new_info, file, indent = 4)
+
+pgs = get_progress()
+
+def quit():
+    save_progress(pgs)
+    pygame.quit()
+    sys.exit()
+
 
 
 def picross(level):
+
+    Music.play_level_track()
 
     # Function to build the interface and return what's necessary to have control over what's being clicked
     def build():
         Screen.window.fill(GRAY)
         Screen.draw_return_msg()
-        return level.build_level()
+        pygame.display.set_caption(CAPTION_TITLE + f'Fase {level.number}')
+        return level.build()
 
     level_grid, level_info = build()
+    level_completed = False
     error_count = 0
 
     running = True
@@ -26,7 +47,7 @@ def picross(level):
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 level_selection()
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN and not level_completed:
                 mouse_pos = tuple(a - b for a, b in zip(pygame.mouse.get_pos(), level_grid.image.get_abs_offset()))
 
                 for tile in level.tiles:
@@ -36,6 +57,7 @@ def picross(level):
                                 tile.reveal()
                             else:
                                 tile.mark_wrong(True)
+
                                 error_count += 1
                                 level.update_info(error_count)
 
@@ -45,18 +67,31 @@ def picross(level):
                         level.update_grid()
 
                         if level.test_for_completion():
+                            level.complete()
+
+                            this_level = pgs[level.number - 1]
+
+                            this_level['completed'] = level_completed = True
+
+                            if this_level['fewest_errors'] is None or this_level['fewest_errors'] > error_count:
+                                this_level['fewest_errors'] = error_count
+
+                            if level.number < len(pgs):
+                                pgs[level.number]['unlocked'] = True
+
                             error_count = 0
 
                         break
 
         pygame.display.flip()
 
-    pygame.quit()
-    sys.exit()
+    quit()
 
 
 
 def level_selection():
+
+    Music.play(Music.menu)
 
     def build():
 
@@ -75,7 +110,7 @@ def level_selection():
 
         def button_image():
             image = pygame.Surface((80, 80))
-            image.fill(YELLOW)
+            image.fill(LIGHT_BLUE)
             return image
 
         button_rect = button_image().get_rect()
@@ -101,12 +136,16 @@ def level_selection():
             for i in range(rows):
                 for j in range(cols):
                     button = Sprite(button_image())
+
+                    if pgs[level_count - 1]['unlocked']:
+                        button.image.fill(YELLOW)
+                        buttons.append(dict(level = level_count, sprite = button))
+
                     button_font.center_write(str(level_count), BLACK, button, button.half_size)
                     button.rect.left = j * (button.rect.width + button_spacing)
                     button.rect.top = i * (button.rect.height + button_spacing)
                     button.draw_border((3, BLACK))
                     button_container.image.blit(button.image, button.rect)
-                    buttons.append(dict(level = level_count, sprite = button))
                     level_count += 1
 
             return buttons
@@ -135,14 +174,15 @@ def level_selection():
 
                 for button in buttons:
                     if button['sprite'].rect.collidepoint(mouse_pos):
+                        SFX['ding'].play()
                         level_number = button['level'] - 1
                         chosen_level = Level.levels[level_number]
                         picross(chosen_level)
+                        break
 
         pygame.display.flip()
 
-    pygame.quit()
-    sys.exit()
+    quit()
 
 
 
@@ -176,12 +216,12 @@ def tutorial():
 
         pygame.display.flip()
 
-    pygame.quit()
-    sys.exit()
-
+    quit()
 
 
 def menu():
+
+    Music.play(Music.menu)
 
     # Function to build the interface and return what's necessary to have control over what's being clicked
     def build():
@@ -260,6 +300,7 @@ def menu():
 
                 for button in buttons:
                     if button['sprite'].rect.collidepoint(mouse_pos):
+                        SFX['ding'].play()
                         match button['action']:
                             case 'play': level_selection()
                             case 'tutorial': tutorial()
@@ -268,8 +309,7 @@ def menu():
 
         pygame.display.flip()
 
-    pygame.quit()
-    sys.exit()
+    quit()
 
 
 

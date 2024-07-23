@@ -1,4 +1,5 @@
 import pygame
+import time
 from constants import *
 
 
@@ -15,23 +16,28 @@ class Sprite(pygame.sprite.Sprite):
         self.half_height = self.height / 2
         self.half_size = (self.half_width, self.half_height)
 
-    def put_in_center(self, target_spr):
-        self.rect.center = target_spr.half_size
-
-    def draw_in_center(self, target_spr):
-        self.put_in_center(target_spr)
-        target_spr.image.blit(self.image, self.rect)
-
     def draw_border(self, border):
-        border_width = border[0]
-        border_color = border[1]
-        pygame.draw.rect(self.image, border_color, (0, 0, self.width, border_width))
-        pygame.draw.rect(self.image, border_color,
-                         (0, self.height - border_width, self.width, border_width))
-        pygame.draw.rect(self.image, border_color, (0, 0, border_width, self.height))
-        pygame.draw.rect(self.image, border_color,
-                         (self.width - border_width, 0, border_width, self.height))
+        bt = border[0] # Border thickness
+        hbt = bt / 2 # Half border thickness
+        bc = border[1] # Border color
 
+        topleft = (0 - hbt,) * 2
+        bottomleft = (0 - hbt, self.height - hbt)
+        topright = (self.width - hbt, 0 - hbt)
+        horizontal = (self.width + bt, bt)
+        vertical = (bt, self.height + bt)
+
+        # pygame.draw.rect(self.image, bc, (0, 0, self.width, bt))
+        # pygame.draw.rect(self.image, bc,
+        #                  (0, self.height - bt, self.width, bt))
+        # pygame.draw.rect(self.image, bc, (0, 0, bt, self.height))
+        # pygame.draw.rect(self.image, bc,
+        #                  (self.width - bt, 0, bt, self.height))
+
+        pygame.draw.rect(self.image, bc, topleft + horizontal)
+        pygame.draw.rect(self.image, bc, bottomleft + horizontal)
+        pygame.draw.rect(self.image, bc, topleft + vertical)
+        pygame.draw.rect(self.image, bc, topright + vertical)
 
 
 class Font(pygame.font.Font):
@@ -90,20 +96,58 @@ class Tile(Sprite):
 
     def reveal(self):
         if not self.revealed:
+            SFX['ding'].play()
             self.revealed = True
             self.image.fill(Tile.revealed_color)
 
     def mark_wrong(self, left_click = False):
+        SFX['woosh'].play()
         if self.marked_wrong and not left_click: # Unmark as wrong
             pygame.draw.line(self.image, Tile.unrevealed_color, (0, 0), (self.rect.width, self.rect.height))
             pygame.draw.line(self.image, Tile.unrevealed_color, (self.rect.width, 0), (0, self.rect.height))
             self.draw_border((3, BLACK))
             self.marked_wrong = False
-        else: # Mark as wrong
+        elif not self.marked_wrong: # Mark as wrong
             pygame.draw.line(self.image, BLACK, (0, 0), (self.rect.width, self.rect.height))
             pygame.draw.line(self.image, BLACK, (self.rect.width, 0), (0, self.rect.height))
             self.marked_wrong = True
 
+
+
+class Music:
+
+    loaded = None
+    menu = 'assets/menu.mp3'
+    level_solved = 'assets/level_solved.mp3'
+    level_tracks = [f'assets/level_{i}.mp3' for i in range(1, 5)]
+    current_level_track = 0
+
+    @classmethod
+    def play(cls, music, loops = -1, volume = 0.3):
+        if cls.loaded != music:
+            cls.loaded = music
+            pygame.mixer.music.load(music)
+            pygame.mixer.music.set_volume(volume)
+            pygame.mixer.music.play(loops)
+
+    @classmethod
+    def play_level_track(cls):
+        if cls.current_level_track == len(cls.level_tracks) - 1:
+            cls.current_level_track = 0
+        else:
+            cls.current_level_track += 1
+
+        cls.play(cls.level_tracks[cls.current_level_track])
+
+
+
+pygame.mixer.init()
+SFX = dict(
+    woosh = pygame.mixer.Sound('assets/se_06.wav'),
+    ding = pygame.mixer.Sound('assets/se_09.wav'),
+)
+for sound in SFX.values():
+    sound.set_volume(0.3)
 
 
 
@@ -150,6 +194,7 @@ class Level(Sprite):
         for row in self.matrix:
             for tile in row:
                 tile.revealed = False
+                tile.marked_wrong = False
 
     def get_tiles(self):
         tiles = []
@@ -237,6 +282,13 @@ class Level(Sprite):
             if tile.correct and not tile.revealed:
                 return False
 
+        return True
+
+    def complete(self):
+        self.reveal_grid()
+        Music.play(Music.level_solved, 0)
+
+    def reveal_grid(self):
         for row in self.matrix:
             for tile in row:
                 if tile.correct:
@@ -246,16 +298,15 @@ class Level(Sprite):
 
                 self.image.blit(tile.image, tile.rect)
 
-        return True
-
     def update_grid(self):
         for tile in self.tiles:
             if tile.correct and tile.revealed:
                 tile.image.fill(Tile.revealed_color)
-                self.image.blit(tile.image, tile.rect)
+
+            self.image.blit(tile.image, tile.rect)
 
     def build_rows_numbers(self, rows_numbers):
-        subrect = pygame.Rect((0, 0), (0, 0))
+        subrect = pygame.Rect(0, 0, 0, 0)
         subrect.height = rows_numbers.rect.height / self.rows_amount
         subrect.width = rows_numbers.rect.width
 
@@ -266,14 +317,14 @@ class Level(Sprite):
             row = Sprite(rows_numbers.image.subsurface(subrect))
             row.draw_border((3, BLACK))
 
-            for j, number in enumerate(reversed(self.rows_numbers[i])):
+            for j, number in enumerate(self.rows_numbers[i][::-1]):
                 number_subrect = pygame.Rect((0, 0), (28, subrect.height))
                 number_subrect.left = subrect.width - number_subrect.width * (j + 1) - 20 * (j + 1)
                 number_spr = Sprite(row.image.subsurface(number_subrect))
                 number_font.center_write(str(number), WHITE, number_spr, number_spr.half_size)
 
     def build_cols_numbers(self, cols_numbers):
-        subrect = pygame.Rect((0, 0), (0, 0))
+        subrect = pygame.Rect(0, 0, 0, 0)
         subrect.width = cols_numbers.rect.width / self.cols_amount
         subrect.height = cols_numbers.rect.height
 
@@ -284,13 +335,13 @@ class Level(Sprite):
             col = Sprite(cols_numbers.image.subsurface(subrect))
             col.draw_border((3, BLACK))
 
-            for j, number in enumerate(reversed(self.cols_numbers[i])):
+            for j, number in enumerate(self.cols_numbers[i][::-1]):
                 number_subrect = pygame.Rect((0, 0), (subrect.width, 28))
                 number_subrect.top = subrect.height - number_subrect.height * (j + 1) - 20 * (j + 1)
                 number_spr = Sprite(col.image.subsurface(number_subrect))
                 number_font.center_write(str(number), WHITE, number_spr, number_spr.half_size)
 
-    def build_level(self):
+    def build(self):
         self.reset_matrix()
 
         subrect = pygame.Rect((0, 0), (Screen.width - 130, Screen.height - 50))
@@ -313,24 +364,34 @@ class Level(Sprite):
         self.rect.top = picross.rect.height - self.rect.height
         self.rect.left = picross.rect.width - self.rect.width
 
-        subrect.top = 0
-        subrect.left = self.rect.left
-        subrect.height = picross.rect.height - self.rect.height
-        subrect.width = self.rect.width #SEPARAR EM FUNC
-        cols_numbers = Sprite(picross.image.subsurface(subrect))
+
+        def cols_numbers():
+            subrect.top = 0
+            subrect.left = self.rect.left
+            subrect.height = picross.rect.height - self.rect.height
+            subrect.width = self.rect.width
+            return Sprite(picross.image.subsurface(subrect))
+
+        cols_numbers = cols_numbers()
         self.build_cols_numbers(cols_numbers)
 
-        subrect.left = 0
-        subrect.top = self.rect.top
-        subrect.width = picross.rect.width - self.rect.width #SEPARAR EM FUNC
-        subrect.height = self.rect.height
-        rows_numbers = Sprite(picross.image.subsurface(subrect))
+        def rows_numbers():
+            subrect.left = 0
+            subrect.top = self.rect.top
+            subrect.width = picross.rect.width - self.rect.width
+            subrect.height = self.rect.height
+            return Sprite(picross.image.subsurface(subrect))
+
+        rows_numbers = rows_numbers()
         self.build_rows_numbers(rows_numbers)
 
-        subrect.topleft = (0, 0)
-        subrect.width = picross.rect.width - self.rect.width
-        subrect.height = picross.rect.height - self.rect.height    #SEPARAR EM FUNC
-        self.info = Sprite(picross.image.subsurface(subrect))
+        def info():
+            subrect.topleft = (0, 0)
+            subrect.width = picross.rect.width - self.rect.width
+            subrect.height = picross.rect.height - self.rect.height
+            return Sprite(picross.image.subsurface(subrect))
+
+        self.info = info()
         self.info_font = Font(Font.pixelated, 60)
         self.info_font.center_write(f'Fase  {self.number}', WHITE, self.info, self.info.half_size)
 
@@ -351,7 +412,7 @@ class Level(Sprite):
             self.info.half_width, self.info.half_height + self.info_font.size))
 
 
-
+K = BLACK
 Y = YELLOW
 L = LIGHT_BLUE
 R = RED
@@ -360,6 +421,7 @@ O = ORANGE
 B = BLUE
 W = WHITE
 N = BROWN
+Q = QUANTUM
 G = GREEN
 
 lvl_1 = Level(50, [
@@ -395,13 +457,13 @@ lvl_4 = Level(50, [
 ])
 
 lvl_5 = Level(50, [
-    [0, 0, 0, N, 0, 0, 0],
-    [0, 0, N, 0, N, 0, 0],
-    [0, N, N, N, N, N, 0],
-    [N, N, N, 0, N, N, N],
-    [0, N, N, N, N, N, 0],
-    [0, 0, N, 0, N, 0, 0],
-    [0, 0, 0, N, 0, 0, 0]
+    [0, 0, 0, G, 0, 0, 0],
+    [0, 0, Y, 0, Y, 0, 0],
+    [0, Y, G, G, G, Y, 0],
+    [G, Y, G, 0, G, Y, G],
+    [0, Y, G, G, G, Y, 0],
+    [0, 0, Y, 0, Y, 0, 0],
+    [0, 0, 0, G, 0, 0, 0]
 ])
 
 lvl_6 = Level(40, [
@@ -433,7 +495,7 @@ lvl_7 = Level(40, [
 lvl_8 = Level(40, [
     [0, N, N, N, N, 0, 0, N, 0, 0],
     [N, N, 0, N, N, 0, N, N, N, 0],
-    [N, 0, 0, N, N, 0, N, 0, N, N],
+    [N, 0, 0, N, N, 0, N, 0, N, Q],
     [0, 0, N, N, N, 0, N, N, N, N],
     [0, N, N, N, 0, N, N, N, N, 0],
     [0, N, N, 0, N, N, N, N, N, 0],
@@ -446,20 +508,20 @@ lvl_8 = Level(40, [
 lvl_9 = Level(40, [
     [0, 0, O, 0, O, 0, 0, 0, 0, 0],
     [0, O, O, O, O, 0, 0, 0, 0, 0],
-    [O, 0, O, O, O, 0, 0, 0, O, 0],
-    [O, O, O, O, O, 0, 0, O, 0, 0],
+    [O, 0, O, O, O, 0, 0, 0, W, 0],
+    [O, O, O, O, O, 0, 0, W, 0, 0],
     [0, O, O, O, 0, 0, 0, O, O, 0],
     [0, 0, O, O, O, O, 0, 0, O, O],
     [0, 0, O, O, O, O, O, 0, 0, O],
     [0, O, O, O, O, O, O, 0, 0, O],
     [0, O, O, 0, O, O, O, 0, O, O],
-    [O, O, 0, O, O, O, O, O, O, 0]
+    [W, O, 0, W, O, O, O, O, O, 0]
 ])
 
-lvl_10 = Level(30, [
-    [W, W, W, 0, R, R, R, 0, Y, Y, Y, 0, L, L, L, 0, G, G, G],
-    [W, 0, 0, 0, R, 0, R, 0, 0, Y, 0, 0, L, 0, 0, 0, G, 0, 0],
-    [W, W, 0, 0, R, R, R, 0, 0, Y, 0, 0, L, L, 0, 0, G, 0, 0],
-    [W, 0, 0, 0, R, 0, R, 0, 0, Y, 0, 0, L, 0, 0, 0, G, 0, 0],
-    [W, 0, 0, 0, R, 0, R, 0, 0, Y, 0, 0, L, L, L, 0, G, G, G]
+lvl_10 = Level(27, [
+    [O, 0, 0, 0, R, R, R, 0, Y, Y, Y, 0, L, L, L, 0, G, 0, 0],
+    [O, 0, 0, 0, R, 0, 0, 0, Y, 0, 0, 0, L, 0, L, 0, G, 0, 0],
+    [O, 0, 0, 0, R, R, 0, 0, Y, 0, Y, 0, L, L, L, 0, G, 0, 0],
+    [O, 0, 0, 0, R, 0, 0, 0, Y, 0, Y, 0, L, 0, L, 0, G, 0, 0],
+    [O, O, O, 0, R, R, R, 0, Y, Y, Y, 0, L, 0, L, 0, G, G, G]
 ])
