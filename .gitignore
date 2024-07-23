@@ -1,3 +1,6 @@
 
+.venv
+.idea
+__pycache__
 progress_full.json
 main.py

@@ -48,5 +48,10 @@
         "unlocked": true,
         "completed": true,
         "fewest_errors": 0
+    },
+    {
+        "unlocked": true,
+        "completed": true,
+        "fewest_errors": 0
     }
 ]
