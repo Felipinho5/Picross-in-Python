@@ -102,6 +102,7 @@ class Tile(Sprite):
             self.image.fill(Tile.revealed_color)
 
     def mark_wrong(self, left_click = False):
+        if self.revealed: return
         SFX['woosh'].play()
         if self.marked_wrong and not left_click: # Unmark as wrong
             pygame.draw.line(self.image, Tile.unrevealed_color, (0, 0), (self.rect.width, self.rect.height))

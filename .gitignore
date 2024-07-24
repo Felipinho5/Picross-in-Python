@@ -2,3 +2,4 @@
 .venv
 progress_full.json
 __pycache__
+build
