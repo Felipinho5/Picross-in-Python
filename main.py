@@ -1,6 +1,7 @@
 import sys
 import pygame
 import json
+import js
 import math
 import asyncio
 from constants import *
@@ -9,25 +10,23 @@ from basis import Sprite, Font, Screen, Level, Music, SFX
 def load_progress():
     global pgs
 
-    with open(PROGRESS_FILE, 'r') as file:
-        pgs = json.load(file)
+    json_data = js.window.localStorage.getItem(PROGRESS_LOCAL_STORAGE)
+    if json_data is not None:
+        pgs = json.loads(json_data)
+    else:
+        pgs = PROGRESS_RESET
 
 def save_progress():
     global pgs
 
-    with open(PROGRESS_FILE, 'w') as file:
-        json.dump(pgs, file, indent = 4)
+    json_data = json.dumps(pgs)
+    js.window.localStorage.setItem(PROGRESS_LOCAL_STORAGE, json_data)
 
 def reset_progress():
     global pgs
 
-    with open(PROGRESS_RESET_FILE, 'r') as source:
-        reset_pgs = json.load(source)
-
-    with open(PROGRESS_FILE, 'w') as target:
-        json.dump(reset_pgs, target, indent = 4)
-
-    pgs = reset_pgs
+    pgs = PROGRESS_RESET
+    save_progress()
 
 def update():
     pygame.display.flip()
