@@ -102,6 +102,7 @@ class Tile(Sprite):
             self.image.fill(Tile.revealed_color)
 
     def mark_wrong(self, left_click = False):
+        if self.revealed: return
         SFX['woosh'].play()
         if self.marked_wrong and not left_click: # Unmark as wrong
             pygame.draw.line(self.image, Tile.unrevealed_color, (0, 0), (self.rect.width, self.rect.height))
@@ -115,13 +116,23 @@ class Tile(Sprite):
 
 
 
+pygame.mixer.init()
+
 class Music:
 
     loaded = None
     menu = 'assets/menu.mp3'
     level_solved = 'assets/level_solved.mp3'
     level_tracks = [f'assets/level_{i}.mp3' for i in range(1, 5)]
+    all = [menu, level_solved] + level_tracks
     current_level_track = 0
+
+    # Method to load all the songs beforehand to avoid delay when played
+    @classmethod
+    def load_all(cls):
+        for track in cls.all:
+            pygame.mixer.music.load(track)
+            pygame.mixer.music.unload()
 
     @classmethod
     def play(cls, music, loops = -1, volume = 0.3):
@@ -141,9 +152,10 @@ class Music:
 
         cls.play(cls.level_tracks[cls.current_level_track])
 
+Music.load_all()
 
 
-pygame.mixer.init()
+
 SFX = dict(
     woosh = pygame.mixer.Sound('assets/se_06.wav'),
     ding = pygame.mixer.Sound('assets/se_09.wav'),
