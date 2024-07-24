@@ -1,16 +1,16 @@
 [
     {
         "unlocked": true,
-        "completed": true,
-        "fewest_errors": 0
+        "completed": false,
+        "fewest_errors": null
     },
     {
-        "unlocked": true,
-        "completed": true,
-        "fewest_errors": 0
+        "unlocked": false,
+        "completed": false,
+        "fewest_errors": null
     },
     {
-        "unlocked": true,
+        "unlocked": false,
         "completed": false,
         "fewest_errors": null
     },

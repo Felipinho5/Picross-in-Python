@@ -1,5 +1,4 @@
 import pygame
-import time
 from constants import *
 
 
@@ -41,6 +40,7 @@ class Sprite(pygame.sprite.Sprite):
         pygame.draw.rect(self.image, bc, topright + vertical)
 
 
+
 class Font(pygame.font.Font):
 
     pixelated = 'assets/pixelated.ttf'
@@ -76,7 +76,7 @@ class Screen:
         font = Font(Font.pixelated, 20)
         subrect = pygame.Rect(10, 10, 200, 200)
         spr = Sprite(Screen.window.subsurface(subrect))
-        font.topleft_write('ESC para voltar', WHITE, spr, (0, 0))
+        font.topleft_write('Aperte B para voltar', WHITE, spr, (0, 0))
 
 
 
@@ -127,6 +127,7 @@ class Music:
     def play(cls, music, loops = -1, volume = 0.3):
         if cls.loaded != music:
             cls.loaded = music
+            pygame.mixer.music.unload()
             pygame.mixer.music.load(music)
             pygame.mixer.music.set_volume(volume)
             pygame.mixer.music.play(loops)

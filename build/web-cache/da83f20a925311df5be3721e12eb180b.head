@@ -13,13 +13,13 @@ x-hosts-log-append: pages_hosts_ips:
 x-proxy-cache: MISS
 X-GitHub-Request-Id: B61F:AF880:2EE60A:352B7C:66950FC3
 Accept-Ranges: bytes
-Age: 0
-Date: Tue, 23 Jul 2024 15:23:11 GMT
+Age: 117
+Date: Tue, 23 Jul 2024 19:20:39 GMT
 Via: 1.1 varnish
-X-Served-By: cache-gru-sbgr1930054-GRU
+X-Served-By: cache-gru-sbgr1930043-GRU
 X-Cache: HIT
 X-Cache-Hits: 0
-X-Timer: S1721748191.315622,VS0,VE209
+X-Timer: S1721762439.298471,VS0,VE1
 Vary: Accept-Encoding
-X-Fastly-Request-ID: 8ec212b359ac3726dfd1753840951c77a977f4a4
+X-Fastly-Request-ID: 5c6064ec293b9ed7d62a79e2728d889c0efaeff7
 
