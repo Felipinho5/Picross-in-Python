@@ -5,6 +5,7 @@ from auxiliary import *
 from basis import Sprite, Font, Screen, Level, Music, Sfx
 
 
+pygame.init()
 clock = pygame.time.Clock()
 
 def update():
@@ -492,8 +493,6 @@ def tutorial():
 
 
 def main():
-
-    pygame.init()
 
     Music.play(Music.menu)
 

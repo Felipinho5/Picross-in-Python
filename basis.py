@@ -68,7 +68,7 @@ class Screen:
         font = Font(Font.pixelated, 20)
         subrect = pygame.Rect(10, 10, 200, 200)
         spr = Sprite(Screen.window.subsurface(subrect))
-        font.topleft_write('ESC para voltar', WHITE, spr, (0, 0))
+        font.topleft_write('Aperte ESC para voltar', WHITE, spr, (0, 0))
 
 
 
