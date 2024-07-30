@@ -435,7 +435,6 @@ def options():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = relative_mouse_pos(sfx_volume['setter'])
-                print(mouse_pos)  # DEBUG
 
                 new_volume = Sfx.volume
 
@@ -448,7 +447,6 @@ def options():
                     update_volume_measurer(sfx_volume)
                 else:
                     mouse_pos = relative_mouse_pos(music_toggler)
-                    print(mouse_pos) # DEBUG
                     if music_toggler.rect.collidepoint(mouse_pos):
                         Sfx.ding.play()
                         Music.toggle()
