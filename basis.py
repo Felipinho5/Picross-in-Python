@@ -1,6 +1,5 @@
 import pygame
-import time
-from constants import *
+from auxiliary import *
 
 
 class Sprite(pygame.sprite.Sprite):
@@ -27,13 +26,6 @@ class Sprite(pygame.sprite.Sprite):
         topright = (self.width - hbt, 0 - hbt)
         horizontal = (self.width + bt, bt)
         vertical = (bt, self.height + bt)
-
-        # pygame.draw.rect(self.image, bc, (0, 0, self.width, bt))
-        # pygame.draw.rect(self.image, bc,
-        #                  (0, self.height - bt, self.width, bt))
-        # pygame.draw.rect(self.image, bc, (0, 0, bt, self.height))
-        # pygame.draw.rect(self.image, bc,
-        #                  (self.width - bt, 0, bt, self.height))
 
         pygame.draw.rect(self.image, bc, topleft + horizontal)
         pygame.draw.rect(self.image, bc, bottomleft + horizontal)
@@ -97,13 +89,13 @@ class Tile(Sprite):
 
     def reveal(self):
         if not self.revealed:
-            SFX['ding'].play()
+            Sfx.ding.play()
             self.revealed = True
             self.image.fill(Tile.revealed_color)
 
     def mark_wrong(self, left_click = False):
         if self.revealed: return
-        SFX['woosh'].play()
+        Sfx.woosh.play()
         if self.marked_wrong and not left_click: # Unmark as wrong
             pygame.draw.line(self.image, Tile.unrevealed_color, (0, 0), (self.rect.width, self.rect.height))
             pygame.draw.line(self.image, Tile.unrevealed_color, (self.rect.width, 0), (0, self.rect.height))
@@ -116,20 +108,23 @@ class Tile(Sprite):
 
 
 
+pygame.mixer.init()
+
 class Music:
 
-    loaded = None
+    enabled = True
+    loaded_track = None
     menu = 'assets/menu.mp3'
     level_solved = 'assets/level_solved.mp3'
     level_tracks = [f'assets/level_{i}.mp3' for i in range(1, 5)]
     current_level_track = 0
 
     @classmethod
-    def play(cls, music, loops = -1, volume = 0.3):
-        if cls.loaded != music:
-            cls.loaded = music
+    def play(cls, music, loops = -1):
+        if cls.loaded_track != music and cls.enabled:
+            cls.loaded_track = music
             pygame.mixer.music.load(music)
-            pygame.mixer.music.set_volume(volume)
+            pygame.mixer.music.set_volume(0.1)
             pygame.mixer.music.play(loops)
 
     @classmethod
@@ -141,15 +136,34 @@ class Music:
 
         cls.play(cls.level_tracks[cls.current_level_track])
 
+    @classmethod
+    def toggle(cls):
+        cls.enabled = not cls.enabled
+
+        if cls.enabled:
+            cls.play(Music.menu)
+        else:
+            cls.loaded_track = None
+            pygame.mixer.music.unload()
 
 
-pygame.mixer.init()
-SFX = dict(
-    woosh = pygame.mixer.Sound('assets/se_06.wav'),
-    ding = pygame.mixer.Sound('assets/se_09.wav'),
-)
-for sound in SFX.values():
-    sound.set_volume(0.3)
+
+class Sfx:
+
+    volume = 5
+    woosh = pygame.mixer.Sound('assets/se_06.wav')
+    ding = pygame.mixer.Sound('assets/se_09.wav')
+    all = [woosh, ding]
+
+    @classmethod
+    def set_volume(cls, volume):
+        if volume >= 0 and volume <= 10:
+            cls.volume = volume
+            volume /= 10
+            for sound in cls.all:
+                sound.set_volume(volume)
+
+Sfx.set_volume(Sfx.volume)
 
 
 

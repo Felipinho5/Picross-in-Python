@@ -3,3 +3,5 @@
 progress_full.json
 __pycache__
 build
+dist
+main.spec
