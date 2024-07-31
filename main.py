@@ -531,14 +531,10 @@ async def main():
             options_button = Sprite(button_image())
             button_font.center_write('Volume', BLACK, options_button, options_button.half_size)
 
-            quit_button = Sprite(button_image())
-            button_font.center_write('Sair', BLACK, quit_button, quit_button.half_size)
-
             return [
                 dict(action = 'play', sprite = play_button),
                 dict(action = 'tutorial', sprite = tutorial_button),
                 dict(action = 'options', sprite = options_button),
-                dict(action = 'quit', sprite = quit_button)
             ]
 
         buttons = buttons()
@@ -583,7 +579,6 @@ async def main():
                             case 'play': await level_selection()
                             case 'tutorial': await tutorial()
                             case 'options': await options()
-                            case 'quit': running = False
                         break
 
         await update()
