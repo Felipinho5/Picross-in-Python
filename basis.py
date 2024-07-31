@@ -1,5 +1,5 @@
 import pygame
-from constants import *
+from auxiliary import *
 
 
 class Sprite(pygame.sprite.Sprite):
@@ -16,29 +16,21 @@ class Sprite(pygame.sprite.Sprite):
         self.half_height = self.height / 2
         self.half_size = (self.half_width, self.half_height)
 
-    def draw_border(self, border):
-        bt = border[0] # Border thickness
-        hbt = bt / 2 # Half border thickness
-        bc = border[1] # Border color
+    def draw_border(self, thickness, color):
+        t = thickness # Border thickness
+        ht = t / 2 # Half border thickness
+        c = color # Border color
 
-        topleft = (0 - hbt,) * 2
-        bottomleft = (0 - hbt, self.height - hbt)
-        topright = (self.width - hbt, 0 - hbt)
-        horizontal = (self.width + bt, bt)
-        vertical = (bt, self.height + bt)
+        topleft = (0 - ht,) * 2
+        bottomleft = (0 - ht, self.height - ht)
+        topright = (self.width - ht, 0 - ht)
+        horizontal = (self.width + t, t)
+        vertical = (t, self.height + t)
 
-        # pygame.draw.rect(self.image, bc, (0, 0, self.width, bt))
-        # pygame.draw.rect(self.image, bc,
-        #                  (0, self.height - bt, self.width, bt))
-        # pygame.draw.rect(self.image, bc, (0, 0, bt, self.height))
-        # pygame.draw.rect(self.image, bc,
-        #                  (self.width - bt, 0, bt, self.height))
-
-        pygame.draw.rect(self.image, bc, topleft + horizontal)
-        pygame.draw.rect(self.image, bc, bottomleft + horizontal)
-        pygame.draw.rect(self.image, bc, topleft + vertical)
-        pygame.draw.rect(self.image, bc, topright + vertical)
-
+        pygame.draw.rect(self.image, c, topleft + horizontal)
+        pygame.draw.rect(self.image, c, bottomleft + horizontal)
+        pygame.draw.rect(self.image, c, topleft + vertical)
+        pygame.draw.rect(self.image, c, topright + vertical)
 
 
 class Font(pygame.font.Font):
@@ -97,17 +89,17 @@ class Tile(Sprite):
 
     def reveal(self):
         if not self.revealed:
-            SFX['ding'].play()
+            Sfx.ding.play()
             self.revealed = True
             self.image.fill(Tile.revealed_color)
 
     def mark_wrong(self, left_click = False):
         if self.revealed: return
-        SFX['woosh'].play()
+        Sfx.woosh.play()
         if self.marked_wrong and not left_click: # Unmark as wrong
             pygame.draw.line(self.image, Tile.unrevealed_color, (0, 0), (self.rect.width, self.rect.height))
             pygame.draw.line(self.image, Tile.unrevealed_color, (self.rect.width, 0), (0, self.rect.height))
-            self.draw_border((3, BLACK))
+            self.draw_border(3, BLACK)
             self.marked_wrong = False
         elif not self.marked_wrong: # Mark as wrong
             pygame.draw.line(self.image, BLACK, (0, 0), (self.rect.width, self.rect.height))
@@ -120,27 +112,19 @@ pygame.mixer.init()
 
 class Music:
 
-    loaded = None
+    enabled = True
+    loaded_track = None
     menu = 'assets/menu.mp3'
     level_solved = 'assets/level_solved.mp3'
     level_tracks = [f'assets/level_{i}.mp3' for i in range(1, 5)]
-    all = [menu, level_solved] + level_tracks
     current_level_track = 0
 
-    # Method to load all the songs beforehand to avoid delay when played
     @classmethod
-    def load_all(cls):
-        for track in cls.all:
-            pygame.mixer.music.load(track)
-            pygame.mixer.music.unload()
-
-    @classmethod
-    def play(cls, music, loops = -1, volume = 0.3):
-        if cls.loaded != music:
-            cls.loaded = music
-            pygame.mixer.music.unload()
+    def play(cls, music, loops = -1):
+        if cls.loaded_track != music and cls.enabled:
+            cls.loaded_track = music
             pygame.mixer.music.load(music)
-            pygame.mixer.music.set_volume(volume)
+            pygame.mixer.music.set_volume(0.1)
             pygame.mixer.music.play(loops)
 
     @classmethod
@@ -152,16 +136,34 @@ class Music:
 
         cls.play(cls.level_tracks[cls.current_level_track])
 
-Music.load_all()
+    @classmethod
+    def toggle(cls):
+        cls.enabled = not cls.enabled
+
+        if cls.enabled:
+            cls.play(Music.menu)
+        else:
+            cls.loaded_track = None
+            pygame.mixer.music.unload()
 
 
 
-SFX = dict(
-    woosh = pygame.mixer.Sound('assets/se_06.wav'),
-    ding = pygame.mixer.Sound('assets/se_09.wav'),
-)
-for sound in SFX.values():
-    sound.set_volume(0.3)
+class Sfx:
+
+    volume = 5
+    woosh = pygame.mixer.Sound('assets/se_06.wav')
+    ding = pygame.mixer.Sound('assets/se_09.wav')
+    all = [woosh, ding]
+
+    @classmethod
+    def set_volume(cls, volume):
+        if volume >= 0 and volume <= 10:
+            cls.volume = volume
+            volume /= 10
+            for sound in cls.all:
+                sound.set_volume(volume)
+
+Sfx.set_volume(Sfx.volume)
 
 
 
@@ -329,7 +331,7 @@ class Level(Sprite):
         for i in range(self.rows_amount):
             subrect.top = i * self.tile_size
             row = Sprite(rows_numbers.image.subsurface(subrect))
-            row.draw_border((3, BLACK))
+            row.draw_border(3, BLACK)
 
             for j, number in enumerate(self.rows_numbers[i][::-1]):
                 number_subrect = pygame.Rect((0, 0), (28, subrect.height))
@@ -347,7 +349,7 @@ class Level(Sprite):
         for i in range(self.cols_amount):
             subrect.left = i * self.tile_size
             col = Sprite(cols_numbers.image.subsurface(subrect))
-            col.draw_border((3, BLACK))
+            col.draw_border(3, BLACK)
 
             for j, number in enumerate(self.cols_numbers[i][::-1]):
                 number_subrect = pygame.Rect((0, 0), (subrect.width, 28))

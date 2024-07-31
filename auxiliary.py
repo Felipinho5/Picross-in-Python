@@ -1,3 +1,6 @@
+import json
+import js
+
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
 BLACK = (0, 0, 0)
@@ -65,3 +68,19 @@ PROGRESS_RESET = [
         "fewest_errors": None
     }
 ]
+
+def load_progress():
+    json_data = js.window.localStorage.getItem(PROGRESS_LOCAL_STORAGE)
+
+    if json_data is not None:
+        return json.loads(json_data)
+
+    return PROGRESS_RESET
+
+def save_progress(pgs):
+    json_data = json.dumps(pgs)
+    js.window.localStorage.setItem(PROGRESS_LOCAL_STORAGE, json_data)
+
+def reset_progress():
+    save_progress(PROGRESS_RESET)
+    return PROGRESS_RESET
