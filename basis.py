@@ -288,7 +288,7 @@ class Level(Sprite):
     def build_grid(self):
         for tile in self.tiles:
             tile.image.fill(Tile.unrevealed_color)
-            tile.draw_border((Level.border[0] / 2, Level.border[1]))
+            tile.draw_border(Level.border[0] / 2, Level.border[1])
             x, y = tile.matrix_pos
             tile.rect.topleft = (y * self.tile_size, x * self.tile_size)
             self.image.blit(tile.image, tile.rect)
