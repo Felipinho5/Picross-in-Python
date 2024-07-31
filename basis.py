@@ -16,21 +16,21 @@ class Sprite(pygame.sprite.Sprite):
         self.half_height = self.height / 2
         self.half_size = (self.half_width, self.half_height)
 
-    def draw_border(self, border):
-        bt = border[0] # Border thickness
-        hbt = bt / 2 # Half border thickness
-        bc = border[1] # Border color
+    def draw_border(self, thickness, color):
+        t = thickness # Border thickness
+        ht = t / 2 # Half border thickness
+        c = color # Border color
 
-        topleft = (0 - hbt,) * 2
-        bottomleft = (0 - hbt, self.height - hbt)
-        topright = (self.width - hbt, 0 - hbt)
-        horizontal = (self.width + bt, bt)
-        vertical = (bt, self.height + bt)
+        topleft = (0 - ht,) * 2
+        bottomleft = (0 - ht, self.height - ht)
+        topright = (self.width - ht, 0 - ht)
+        horizontal = (self.width + t, t)
+        vertical = (t, self.height + t)
 
-        pygame.draw.rect(self.image, bc, topleft + horizontal)
-        pygame.draw.rect(self.image, bc, bottomleft + horizontal)
-        pygame.draw.rect(self.image, bc, topleft + vertical)
-        pygame.draw.rect(self.image, bc, topright + vertical)
+        pygame.draw.rect(self.image, c, topleft + horizontal)
+        pygame.draw.rect(self.image, c, bottomleft + horizontal)
+        pygame.draw.rect(self.image, c, topleft + vertical)
+        pygame.draw.rect(self.image, c, topright + vertical)
 
 
 class Font(pygame.font.Font):
@@ -99,7 +99,7 @@ class Tile(Sprite):
         if self.marked_wrong and not left_click: # Unmark as wrong
             pygame.draw.line(self.image, Tile.unrevealed_color, (0, 0), (self.rect.width, self.rect.height))
             pygame.draw.line(self.image, Tile.unrevealed_color, (self.rect.width, 0), (0, self.rect.height))
-            self.draw_border((3, BLACK))
+            self.draw_border(3, BLACK)
             self.marked_wrong = False
         elif not self.marked_wrong: # Mark as wrong
             pygame.draw.line(self.image, BLACK, (0, 0), (self.rect.width, self.rect.height))
@@ -288,7 +288,7 @@ class Level(Sprite):
     def build_grid(self):
         for tile in self.tiles:
             tile.image.fill(Tile.unrevealed_color)
-            tile.draw_border((Level.border[0] / 2, Level.border[1]))
+            tile.draw_border(Level.border[0] / 2, Level.border[1])
             x, y = tile.matrix_pos
             tile.rect.topleft = (y * self.tile_size, x * self.tile_size)
             self.image.blit(tile.image, tile.rect)
@@ -331,7 +331,7 @@ class Level(Sprite):
         for i in range(self.rows_amount):
             subrect.top = i * self.tile_size
             row = Sprite(rows_numbers.image.subsurface(subrect))
-            row.draw_border((3, BLACK))
+            row.draw_border(3, BLACK)
 
             for j, number in enumerate(self.rows_numbers[i][::-1]):
                 number_subrect = pygame.Rect((0, 0), (28, subrect.height))
@@ -349,7 +349,7 @@ class Level(Sprite):
         for i in range(self.cols_amount):
             subrect.left = i * self.tile_size
             col = Sprite(cols_numbers.image.subsurface(subrect))
-            col.draw_border((3, BLACK))
+            col.draw_border(3, BLACK)
 
             for j, number in enumerate(self.cols_numbers[i][::-1]):
                 number_subrect = pygame.Rect((0, 0), (subrect.width, 28))

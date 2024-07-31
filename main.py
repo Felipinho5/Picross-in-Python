@@ -180,7 +180,7 @@ def level_selection():
                 reset_progress_button = Sprite(pygame.Surface((button_container.width, button_image().get_height())))
                 reset_progress_button.image.fill(YELLOW)
                 reset_progress_button.rect.bottomright = button_container.size
-                reset_progress_button.draw_border((3, BLACK))
+                reset_progress_button.draw_border(3, BLACK)
 
                 reset_progress_font = Font(Font.pixelated, 30)
                 reset_progress_font.center_write('Zerar progresso', BLACK, reset_progress_button, reset_progress_button.half_size)
@@ -222,7 +222,7 @@ def level_selection():
                     button_font.topleft_write(str(level_count), BLACK, button, (5, 5))
                     button.rect.left = j * (button.rect.width + button_spacing)
                     button.rect.top = i * (button.rect.height + button_spacing)
-                    button.draw_border((3, BLACK))
+                    button.draw_border(3, BLACK)
                     button_container.image.blit(button.image, button.rect)
                     level_count += 1
 
@@ -316,7 +316,7 @@ def options():
 
             def draw_button(spr, text):
                 spr.image.fill(YELLOW)
-                spr.draw_border((3, BLACK))
+                spr.draw_border(3, BLACK)
                 button_font = Font(Font.pixelated, 30)
                 button_font.center_write(text, BLACK, spr, spr.half_size)
                 setter.image.blit(spr.image, spr.rect)
@@ -398,7 +398,7 @@ def options():
                 subrect.bottomright = container.size
                 spr = Sprite(container.image.subsurface(subrect))
                 spr.image.fill(YELLOW)
-                spr.draw_border((3, BLACK))
+                spr.draw_border(3, BLACK)
 
                 text_font = Font(Font.pixelated, 30)
                 text_font.center_write('Ativar / Desativar', BLACK, spr, spr.half_size)
@@ -416,7 +416,7 @@ def options():
         for i, bar in enumerate(setter['measure_bars']):
             color = YELLOW if i < setter['related_class'].volume else LIGHT_BLUE
             bar.image.fill(color)
-            bar.draw_border((3, BLACK))
+            bar.draw_border(3, BLACK)
 
 
 
@@ -555,7 +555,7 @@ def main():
         for i, button in enumerate(buttons):
             spr = button['sprite']
             spr.rect.top = i * (button_rect.height + button_spacing)
-            spr.draw_border((3, BLACK))
+            spr.draw_border(3, BLACK)
             button_container.image.blit(spr.image, spr.rect)
 
         return button_container, buttons
