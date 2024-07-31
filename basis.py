@@ -117,7 +117,15 @@ class Music:
     menu = 'assets/menu.mp3'
     level_solved = 'assets/level_solved.mp3'
     level_tracks = [f'assets/level_{i}.mp3' for i in range(1, 5)]
+    all = [menu, level_solved] + level_tracks
     current_level_track = 0
+
+    # Method to load all the songs beforehand to avoid delay when played
+    @classmethod
+    def load_all(cls):
+        for track in cls.all:
+            pygame.mixer.music.load(track)
+            pygame.mixer.music.unload()
 
     @classmethod
     def play(cls, music, loops = -1):
@@ -145,6 +153,8 @@ class Music:
         else:
             cls.loaded_track = None
             pygame.mixer.music.unload()
+
+Music.load_all()
 
 
 
